@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    annotations:
+        use-subpath: "true"
+    name: {{ .Release.Name }}-configmap
+    namespace: {{ .Values.namespace }}
+data:
+    config.hjson: |
+        {
+          <your_lemmy_hjson_here>
+        }
