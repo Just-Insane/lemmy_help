@@ -8,7 +8,7 @@ metadata:
 spec:
   ports:
     - port: {{ .Values.service_ui.port }}
-      name: {{ .Release.Name }}-port-ui
+      name: {{ .Release.Name }}-ui
   clusterIP: None
   selector:
     app: {{ .Release.Name }}-ui

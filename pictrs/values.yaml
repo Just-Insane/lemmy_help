@@ -9,6 +9,8 @@ service:
   port: 8080
 secret:
   type: Opaque
+  data:
+    api_key: "api_key"
 pvc:
   storage: 20Gi
   storageClassName: local

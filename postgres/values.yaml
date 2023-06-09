@@ -19,6 +19,10 @@ service_pa:
   targetPort: 5050
 secret:
   type: Opaque
+  data:
+    postgres-password: "password"
+    pgadmin-default-email: "mail@lemmy.example"
+    pgadmin-default-password: "password"
 ingress:
   enabled: true
   # Used to create an Ingress record.
