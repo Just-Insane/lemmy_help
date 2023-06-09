@@ -20,6 +20,7 @@ service_pa:
 secret:
   type: Opaque
   data:
+    postgres-user: "lemmy"
     postgres-password: "password"
     pgadmin-default-email: "mail@lemmy.example"
     pgadmin-default-password: "password"

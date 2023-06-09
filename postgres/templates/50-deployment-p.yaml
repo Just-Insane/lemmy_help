@@ -20,7 +20,10 @@ spec:
           image: {{ .Values.image_p.repository }}
           env:
             - name: POSTGRES_USER
-              value: root
+              valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: postgres-user
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
