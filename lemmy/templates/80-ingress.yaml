@@ -13,7 +13,7 @@ metadata:
       add_header X-XSS-Protection "1; mode=block";
 
       set $backend "{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }}";
-      set $frontend "{{ .Release.Name }}-service-ui.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }}";
+      set $frontend "{{ .Release.Name }}-service-ui.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service_ui.port }}";
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header Host $host;
