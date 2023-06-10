@@ -12,13 +12,13 @@ metadata:
       proxy_set_header Host $host;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       if ($http_accept = "application/activity+json") {
-        proxy_pass http://{{ .Release.Name }}.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
+        proxy_pass http://{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
       }
       if ($http_accept = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"") {
-        proxy_pass http://{{ .Release.Name }}.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
+        proxy_pass http://{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
       }
       if ($request_method = POST) {
-        proxy_pass http://{{ .Release.Name }}.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
+        proxy_pass http://{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
       }
 spec:
   tls:
