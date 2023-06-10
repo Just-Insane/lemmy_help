@@ -3,27 +3,62 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-ingress
   annotations:
+    prometheus.io/scrape: "true"
     external-dns.alpha.kubernetes.io/target: "ingress.${SECRET_DOMAIN}"
     hajimari.io/icon: simple-icons:lemmy
+
     nginx.ingress.kubernetes.io/server-snippet: |
+      server_tokens off;
+      gzip on;
+      gzip_types text/css application/javascript image/svg+xml;
+      gzip_vary on;
+
+      # Upload limit, relevant for pictrs
+      client_max_body_size 20M;
+
       add_header X-Frame-Options SAMEORIGIN;
       add_header X-Content-Type-Options nosniff;
       add_header X-XSS-Protection "1; mode=block";
+
       set $backend "{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }}";
       set $frontend "{{ .Release.Name }}-service-ui.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }}";
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header Host $host;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      if ($http_accept = "application/activity+json") {
-        proxy_pass $backend;
+
+      # frontend general requests
+      location / {
+          # distinguish between ui requests and backend
+          # don't change lemmy-ui or lemmy here, they refer to the upstream definitions on top
+          set $proxpass $frontend;
+
+          if ($http_accept = "application/activity+json") {
+            set $proxpass $backend;
+          }
+          if ($http_accept = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"") {
+            set $proxpass $backend;
+          }
+          if ($request_method = POST) {
+            set $proxpass $backend;
+          }
+          proxy_pass $proxpass;
+
+          rewrite ^(.+)/+$ $1 permanent;
+          # Send actual client IP upstream
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header Host $host;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       }
-      if ($http_accept = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"") {
-        proxy_pass $backend;
-      }
-      if ($request_method = POST) {
-        proxy_pass $backend;
-      }
+
+      # backend
+      location ~ ^/(api|pictrs|feeds|nodeinfo|.well-known) {
+          proxy_pass $backend;
+          # proxy common stuff
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+
+          # Send actual client IP upstream
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header Host $host;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;      }
 spec:
   tls:
     - secretName: {{ .Values.tls.secretName }}
@@ -40,38 +75,3 @@ spec:
                 name: {{ .Release.Name }}-service-ui
                 port:
                   number: {{ .Values.service_ui.port }}
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-service
-                port:
-                  number: {{ .Values.service.port }}
-          - path: /pictrs
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-service
-                port:
-                  number: {{ .Values.service.port }}
-          - path: /feeds
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-service
-                port:
-                  number: {{ .Values.service.port }}
-          - path: /nodeinfo
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-service
-                port:
-                  number: {{ .Values.service.port }}
-          - path: /.well-known
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-service
-                port:
-                  number: {{ .Values.service.port }}
