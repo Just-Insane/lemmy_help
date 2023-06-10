@@ -27,9 +27,10 @@ spec:
           - name: RUST_BACKTRACE
             value: {{ .Values.deployment.env.rust_backtrace | quote }}
           volumeMounts:
-          - name: {{ .Release.Name }}-data
+          - name: {{ .Release.Name }}-configmap
             mountPath: "/config"
+            readOnly: true
       volumes:
-        - name: {{ .Release.Name }}-data
-          persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-pvc
+        - name: {{ .Release.Name }}-configmap
+          configMap:
+            name: {{ .Release.Name }}-configmap
