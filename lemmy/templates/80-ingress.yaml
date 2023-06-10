@@ -7,18 +7,20 @@ metadata:
       add_header X-Frame-Options SAMEORIGIN;
       add_header X-Content-Type-Options nosniff;
       add_header X-XSS-Protection "1; mode=block";
+      set $backend "{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }}";
+      set $frontend "{{ .Release.Name }}-service-ui.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }}";
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header Host $host;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       if ($http_accept = "application/activity+json") {
-        proxy_pass http://{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
+        proxy_pass $backend;
       }
       if ($http_accept = "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"") {
-        proxy_pass http://{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
+        proxy_pass $backend;
       }
       if ($request_method = POST) {
-        proxy_pass http://{{ .Release.Name }}-service.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.service.port }};
+        proxy_pass $backend;
       }
 spec:
   tls:
