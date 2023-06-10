@@ -66,6 +66,11 @@ spec:
     - secretName: {{ .Values.tls.secretName }}
       hosts:
         - {{ .Values.ingress.host }}
+  defaultBackend:
+    service:
+      name: {{ .Release.Name }}-service-ui
+      port:
+        number: {{ .Values.service_ui.port }}
   # rules:
   #   - host: {{ .Values.ingress.host }}
   #     http:
